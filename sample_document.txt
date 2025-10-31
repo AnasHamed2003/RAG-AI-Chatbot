@@ -1,0 +1,9 @@
+Artificial Intelligence (AI) is a field of computer science that aims to create machines capable of intelligent behavior. AI systems can learn from data, recognize patterns, make decisions, and solve problems.
+
+Machine Learning is a subset of AI that focuses on algorithms that can learn from and make predictions on data. Deep Learning uses neural networks with many layers to model complex patterns.
+
+Natural Language Processing (NLP) allows computers to understand and generate human language. This enables chatbots, translation services, and text analysis.
+
+Computer Vision enables machines to interpret and understand visual information from the world, such as images and videos.
+
+AI has applications in healthcare, finance, transportation, entertainment, and many other fields.

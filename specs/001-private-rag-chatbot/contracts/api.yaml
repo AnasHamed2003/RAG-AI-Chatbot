@@ -1,0 +1,104 @@
+openapi: 3.0.3
+info:
+  title: Private RAG Chatbot API
+  description: API for querying private documents using RAG
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+paths:
+  /:
+    get:
+      summary: Health check
+      description: Check if the API is running and connected to dependencies
+      responses:
+        "200":
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  version:
+                    type: string
+                    example: "1.0.0"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "unhealthy"
+                  error:
+                    type: string
+                    example: "Ollama not connected"
+  /chat:
+    post:
+      summary: Chat with documents
+      description: Send a question and receive an answer based on private documents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid question format"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Vector database not accessible"
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - question
+      properties:
+        question:
+          type: string
+          description: The user's question about their documents
+          maxLength: 1000
+          example: "What are the main benefits of this approach?"
+    ChatResponse:
+      type: object
+      required:
+        - answer
+      properties:
+        answer:
+          type: string
+          description: The generated answer based on document content
+          example: "Based on the documents, the main benefits include..."
+        sources:
+          type: array
+          items:
+            type: string
+          description: IDs of document chunks used to generate the answer
+          example: ["chunk_001", "chunk_045"]
