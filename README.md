@@ -18,6 +18,10 @@ A FastAPI-based RAG chatbot for SwiftFixPro property maintenance services using 
 
 3. Run locally:
    ```bash
+   # Using conda (recommended)
+   conda run python main.py
+   
+   # Or directly (if environment is properly configured)
    python main.py
    ```
 
@@ -58,7 +62,7 @@ docker-compose up --build -d
 
 # Or run directly (if Python environment is set up)
 pip install -r requirements.txt
-python main.py
+conda run python main.py
 ```
 
 ### Step 3: Configure Firewall/Reverse Proxy
