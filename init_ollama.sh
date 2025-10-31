@@ -13,3 +13,6 @@ ollama pull llama3.2
 ollama pull nomic-embed-text
 
 echo "Models pulled successfully!"
+
+# Start Ollama server
+exec ollama serve
