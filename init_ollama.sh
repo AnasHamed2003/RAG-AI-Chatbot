@@ -5,11 +5,9 @@ ollama serve &
 OLLAMA_PID=$!
 
 echo "Waiting for Ollama to be ready..."
-while ! curl -s http://localhost:11434/api/tags > /dev/null; do
-  sleep 2
-done
+sleep 10
 
-echo "Ollama is ready. Pulling models..."
+echo "Ollama should be ready now. Pulling models..."
 
 # Pull required models
 ollama pull llama3.2
