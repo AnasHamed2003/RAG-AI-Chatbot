@@ -47,18 +47,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=os.getenv("OLLAMA_HOST", "http://localhost:11434"))
-llm = OllamaLLM(model="llama3.2", base_url=os.getenv("OLLAMA_HOST", "http://localhost:11434"))
+embeddings = OllamaEmbeddings(model="nomic-embed-text")
+llm = OllamaLLM(model="llama3.2")
 
 # Initialize FAISS vector store
-# Try to load existing FAISS index, or create new one
-try:
-    db = FAISS.load_local("./faiss_db", embeddings, allow_dangerous_deserialization=True)
-except:
-    # Create empty FAISS index if none exists
-    from langchain_core.documents import Document
-    empty_doc = Document(page_content="Initial document", metadata={"source": "init"})
-    db = FAISS.from_documents([empty_doc], embeddings)
+db = None
+
+def get_db():
+    """Lazy initialization of FAISS database."""
+    global db
+    if db is None:
+        try:
+            db = FAISS.load_local("./faiss_db", embeddings, allow_dangerous_deserialization=True)
+        except:
+            # Create empty FAISS index if none exists
+            from langchain_core.documents import Document
+            empty_doc = Document(page_content="Initial document", metadata={"source": "init"})
+            db = FAISS.from_documents([empty_doc], embeddings)
+    return db
 
 # Conversation memory store - simple dict-based approach
 conversation_memories = {}
@@ -159,11 +165,13 @@ def extract_text_from_file(file_path: str, file_type: str) -> str:
     else:
         raise ValueError(f"Unsupported file type: {file_type}")
 
-retriever = db.as_retriever(search_kwargs={"k": 10})  # Retrieve top 10 most similar chunks
-
 # Create conversational RAG chain
 def create_conversational_chain(memory):
     """Create a conversational RAG chain with memory."""
+    # Get the database (lazy initialization)
+    current_db = get_db()
+    current_retriever = current_db.as_retriever(search_kwargs={"k": 10})
+    
     # Format chat history for the prompt
     chat_history_text = ""
     if memory:
@@ -190,7 +198,7 @@ Answer:"""
 
     chain = (
         {
-            "context": retriever,
+            "context": current_retriever,
             "question": RunnablePassthrough()
         }
         | prompt_template
@@ -231,11 +239,11 @@ async def upload_document(file: UploadFile = File(...)):
         chunks = text_splitter.split_documents([document])
 
         # Add to vector database
-        global db
-        db.add_documents(chunks)
+        current_db = get_db()
+        current_db.add_documents(chunks)
 
         # Save FAISS index
-        db.save_local("./faiss_db")
+        current_db.save_local("./faiss_db")
 
         # Clean up temp file
         os.unlink(temp_file_path)
@@ -260,11 +268,11 @@ async def upload_text(request: UploadTextRequest):
         chunks = text_splitter.split_documents([document])
         
         # Add to vector database
-        global db
-        db.add_documents(chunks)
+        current_db = get_db()
+        current_db.add_documents(chunks)
         
         # Save FAISS index
-        db.save_local("./faiss_db")
+        current_db.save_local("./faiss_db")
         
         return {"message": f"Successfully uploaded text and added {len(chunks)} chunks to the database."}
     
@@ -354,11 +362,11 @@ async def add_knowledge(request: AddKnowledgeRequest):
         chunks = text_splitter.split_documents([document])
 
         # Add to vector database
-        global db
-        db.add_documents(chunks)
+        current_db = get_db()
+        current_db.add_documents(chunks)
 
         # Save FAISS index
-        db.save_local("./faiss_db")
+        current_db.save_local("./faiss_db")
 
         return {
             "message": f"Successfully added knowledge and created {len(chunks)} chunks.",
