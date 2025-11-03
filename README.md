@@ -9,9 +9,9 @@ A FastAPI-based RAG chatbot for SwiftFixPro property maintenance services using 
    pip install -r requirements.txt
    ```
 
-2. Ensure Ollama is running with llama3.2 and nomic-embed-text models:
+2. Ensure Ollama is running with llama3:8b and nomic-embed-text models:
    ```bash
-   ollama pull llama3.2
+   ollama pull llama3:8b
    ollama pull nomic-embed-text
    ollama serve
    ```
@@ -36,7 +36,7 @@ A FastAPI-based RAG chatbot for SwiftFixPro property maintenance services using 
 ### Prerequisites
 - Server with Docker installed
 - Ollama installed and running on the server
-- Models pulled: `llama3.2` and `nomic-embed-text`
+- Models pulled: `llama3:8b` and `nomic-embed-text`
 
 ### Step 1: Install Ollama on Your Server
 ```bash
@@ -44,7 +44,7 @@ A FastAPI-based RAG chatbot for SwiftFixPro property maintenance services using 
 curl -fsSL https://ollama.ai/install.sh | sh
 
 # Pull required models
-ollama pull llama3.2
+ollama pull llama3:8b
 ollama pull nomic-embed-text
 
 # Start Ollama service

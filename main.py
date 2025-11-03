@@ -48,7 +48,7 @@ app.add_middleware(
 )
 
 embeddings = OllamaEmbeddings(model="nomic-embed-text")
-llm = OllamaLLM(model="llama3.2")
+llm = OllamaLLM(model="llama3:8b")
 
 # Initialize FAISS vector store
 db = None
