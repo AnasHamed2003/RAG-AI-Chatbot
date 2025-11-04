@@ -1,10 +1,4 @@
-# 🤖 SwiftFixPro RAG Chatbot API
-
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
-[![Ollama](https://img.shields.io/badge/Ollama-llama3.8b-orange.svg)](https://ollama.ai/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# 🤖 SwiftFixPro RAG Chatbot API [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/) [![Ollama](https://img.shields.io/badge/Ollama-llama3.8b-orange.svg)](https://ollama.ai/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive FastAPI-based RAG (Retrieval-Augmented Generation) chatbot for SwiftFixPro property maintenance services. Features advanced AI model, vector database, conversation memory, and comprehensive knowledge base.
 
@@ -21,16 +15,16 @@ A comprehensive FastAPI-based RAG (Retrieval-Augmented Generation) chatbot for S
 
 ## 📋 Table of Contents
 
-- [Quick Start](#-quick-start)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [API Documentation](#-api-documentation)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Troubleshooting](#-troubleshooting)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Quick Start](#quick-start)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [API Documentation](#api-documentation)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## 🚀 Quick Start
 
@@ -186,6 +180,7 @@ print(response.json())
 ### API Examples
 
 #### Chat with Memory
+
 ```bash
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
@@ -196,12 +191,14 @@ curl -X POST http://localhost:8000/chat \
 ```
 
 #### Upload Document
+
 ```bash
 curl -X POST http://localhost:8000/upload \
   -F "file=@document.pdf"
 ```
 
 #### Add Knowledge
+
 ```bash
 curl -X POST http://localhost:8000/add-knowledge \
   -H "Content-Type: application/json" \
@@ -282,6 +279,7 @@ FEEDBACK_FILE=feedback.jsonl
 ### Common Issues & Solutions
 
 **❌ Model not loading:**
+
 ```bash
 # Check Ollama status
 ollama list
@@ -291,6 +289,7 @@ ollama pull llama3:8b
 ```
 
 **❌ Port already in use:**
+
 ```bash
 # Kill existing processes
 pkill -f "python main.py"
@@ -301,11 +300,13 @@ uvicorn main:app --host 0.0.0.0 --port 8001
 ```
 
 **❌ Memory issues:**
+
 - Ensure 8GB+ RAM available
 - Reduce concurrent requests
 - Consider using smaller model for testing
 
 **❌ Docker issues:**
+
 ```bash
 # Clean rebuild
 docker-compose down
@@ -377,14 +378,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-<div align="center">
-
-**Built with ❤️ for SwiftFixPro property maintenance services**
+Built with ❤️ for SwiftFixPro property maintenance services
 
 ⭐ **Star this repo** if you find it helpful!
 
 [📧 Contact](mailto:support@swiftfixpro.sg) • [🌐 Website](https://swiftfixpro.sg) • [🐛 Report Bug](https://github.com/AnasHamed2003/RAG-AI-Chatbot/issues)
-
-</div>
- 
  
