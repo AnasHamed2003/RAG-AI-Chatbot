@@ -1,25 +1,27 @@
 # Implementation Plan: Private RAG Chatbot
 
-**Branch**: `001-private-rag-chatbot` | **Date**: October 29, 2025 | **Spec**: specs/001-private-rag-chatbot/spec.md
+**Branch**: `001-private-rag-chatbot` | **Date**: November 4, 2025 | **Spec**: specs/001-private-rag-chatbot/spec.md
 **Input**: Feature specification from `/specs/001-private-rag-chatbot/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-Build the FastAPI "Brain" (main.py) with comprehensive document upload capabilities and a React web interface for the private chatbot, integrating with ChromaDB and Ollama using LangChain LCEL.
+Build the FastAPI "Brain" (main.py) with comprehensive document upload capabilities, SwiftFixPro FAQ knowledge base, conversation memory, feedback system, and Docker deployment with Miniconda environment. Upgraded to llama3:8b model and FAISS vector database for improved performance.
 
 ## Technical Context
 
-**Language/Version**: Python 3.11  
-**Primary Dependencies**: FastAPI, LangChain, Ollama, ChromaDB  
-**Storage**: ChromaDB (vector database for document embeddings)  
-**Testing**: pytest  
-**Target Platform**: Linux server (self-hosted)  
-**Project Type**: single (web API)  
+**Language/Version**: Python 3.11 (Miniconda environment)  
+**Primary Dependencies**: FastAPI, LangChain, Ollama, FAISS  
+**Storage**: FAISS (vector database with lazy initialization)  
+**Testing**: pytest, custom API testing scripts  
+**Target Platform**: Linux server (Docker deployment)  
+**Project Type**: single (web API with comprehensive features)  
 **Performance Goals**: <2 seconds response time for chat queries  
-**Constraints**: 100% open-source tools, local execution only  
-**Scale/Scope**: Single user, local deployment  
+**Constraints**: 100% open-source tools, local execution with Docker  
+**Scale/Scope**: Single user, production server deployment  
+**Model**: llama3:8b (upgraded from llama3.2)  
+**Knowledge Base**: SwiftFixPro FAQ (46+ categorized Q&A pairs)  
 
 ## Constitution Check
 
@@ -44,19 +46,17 @@ specs/001-private-rag-chatbot/
 ### Source Code (repository root)
 
 ```text
-main.py          # FastAPI app with chat and upload endpoints
-requirements.txt # Python dependencies
-chroma_db/       # Existing vector store directory
-frontend/        # React application directory
-├── public/      # Static assets
-├── src/         # React source code
-│   ├── components/
-│   │   ├── FileUpload.js    # Document upload component
-│   │   ├── DocumentList.js  # Uploaded documents display
-│   │   └── ChatInterface.js # Chat UI component
-│   ├── App.js   # Main React app
-│   └── index.js # React entry point
-└── package.json # Node.js dependencies
+main.py                 # FastAPI app with comprehensive features
+requirements.txt        # Python dependencies for Miniconda
+docker-compose.yml      # Multi-service Docker deployment
+Dockerfile             # Miniconda-based container setup
+init_ollama.sh         # Ollama model initialization script
+faiss_db/              # FAISS vector database directory
+feedback.jsonl         # User feedback storage
+add_faq_knowledge.py   # FAQ knowledge base addition script
+test_chatbot_server_fixed.py  # API testing script
+check_model_server.sh  # Model validation script
+README.md              # Deployment and usage documentation
 ```
 
 **Structure Decision**: Single file application with main.py as the entry point, following the existing project structure for a simple API service.
@@ -67,28 +67,40 @@ No violations identified.
 
 ## Phase 0: Outline & Research
 
-No NEEDS CLARIFICATION markers in Technical Context - all details resolved from prior research.
+Resolved all technical decisions:
 
-Generate research.md documenting the resolved decisions.
+- Model: llama3:8b (upgraded from llama3.2 for better performance)
+- Vector Database: FAISS with lazy initialization (changed from ChromaDB)
+- Environment: Miniconda for consistent Python package management
+- Deployment: Docker with multi-service setup (chatbot + Ollama)
+- Knowledge Base: SwiftFixPro FAQ with 46+ categorized Q&A pairs
+- Testing: Comprehensive API and model validation scripts
 
 ## Phase 1: Design & Contracts
 
 Extract entities from feature spec:
 
-- Question: user input text
-- Answer: generated response text  
-- Document Chunk: vectorized document portions
-- Vector Embedding: numerical representations
-- Uploaded File: user-uploaded document with metadata
-- Document List: collection of uploaded document names
+- Question: user input text with conversation_id
+- Answer: generated response text with conversation context
+- Document Chunk: vectorized document portions in FAISS
+- Vector Embedding: numerical representations for similarity search
+- Knowledge Entry: structured Q&A from FAQ knowledge base
+- Conversation Memory: stored multi-turn conversation history
+- Feedback Entry: user ratings and comments on responses
+- Uploaded File: user-uploaded document with metadata and processing
 
 Generate API contracts:
 
 - GET / : Health check
-- POST /chat : Accept ChatRequest, return ChatResponse
+- POST /chat : Accept ChatRequest, return ChatResponse with conversation memory
 - POST /upload : Accept file upload, return UploadResponse
 - GET /documents : Return list of uploaded documents
 - POST /upload-text : Accept text input, return UploadResponse
+- POST /add-knowledge : Accept knowledge addition, return confirmation
+- POST /feedback : Accept user feedback, return confirmation
+- GET /feedback : Return feedback history
+- GET /conversations : Return active conversation IDs
+- DELETE /conversation/{id} : Clear specific conversation memory
 
 Generate data-model.md, contracts/, quickstart.md
 

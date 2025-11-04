@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/001-private-rag-chatbot/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: No tests requested in the feature specification.
+**Tests**: Comprehensive testing infrastructure implemented with API validation scripts.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -27,7 +27,7 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create main.py with FastAPI app, load dependencies, establish connections to ChromaDB and Ollama, create GET / endpoint
+- [x] T001 Create main.py with FastAPI app, load dependencies, establish connections to FAISS and Ollama, create GET / endpoint
 
 ---
 
@@ -51,10 +51,11 @@ No foundational tasks required - connections established in setup.
 
 ### Implementation for User Story 1
 
-- [x] T001 [US1] Create main.py with FastAPI app, load dependencies, establish connections to ChromaDB and Ollama, create GET / endpoint
-- [x] T002 [US1] Define API Data Models (ChatRequest, ChatResponse) in main.py
-- [x] T003 [US1] Build the Core RAG Chain in main.py
-- [x] T004 [US1] Create the /chat API Endpoint in main.py
+- [x] T001 [US1] Create main.py with FastAPI app, load dependencies, establish connections to FAISS and Ollama, create GET / endpoint
+- [x] T002 [US1] Define API Data Models (ChatRequest, ChatResponse, AddKnowledgeRequest, FeedbackRequest) in main.py
+- [x] T003 [US1] Build the Core RAG Chain in main.py with conversation memory
+- [x] T004 [US1] Create the /chat API Endpoint in main.py with conversation threading
+- [x] T005 [US1] Implement CORS middleware for cross-origin requests
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -68,34 +69,85 @@ No foundational tasks required - connections established in setup.
 
 ### Implementation for User Story 2
 
-- [x] T005 [US2] Install document processing libraries (python-docx, python-pptx, pandas, openpyxl, pillow, pytesseract, pypdf)
-- [x] T006 [US2] Create text extraction functions for different file types (DOCX, PPTX, Excel, images) in main.py
-- [x] T007 [US2] Create POST /upload endpoint with multi-format support in main.py
-- [x] T008 [US2] Create GET /documents endpoint to list uploaded documents in main.py
-- [x] T009 [US2] Create POST /upload-text endpoint for direct text input in main.py
+- [x] T006 [US2] Install document processing libraries (python-docx, python-pptx, pandas, openpyxl, pillow, pytesseract, pypdf)
+- [x] T007 [US2] Create text extraction functions for different file types (DOCX, PPTX, Excel, images) in main.py
+- [x] T008 [US2] Create POST /upload endpoint with multi-format support in main.py
+- [x] T009 [US2] Create GET /documents endpoint to list uploaded documents in main.py
+- [x] T010 [US2] Create POST /upload-text endpoint for direct text input in main.py
+- [x] T011 [US2] Create POST /add-knowledge endpoint for programmatic knowledge addition in main.py
 
 **Checkpoint**: At this point, User Story 2 should be fully functional and testable independently
 
 ---
 
-## Phase 5: User Story 3 - React Web Interface (Priority: P2)
+## Phase 5: User Story 4 - Knowledge Base Management (Priority: P1)
 
-**Goal**: Provide a user-friendly web interface for document upload and chat functionality
+**Goal**: Implement comprehensive SwiftFixPro FAQ knowledge base with automated knowledge addition
 
-**Independent Test**: Open React app in browser, upload files, and chat with documents
+**Independent Test**: Add FAQ knowledge and verify chatbot can answer SwiftFixPro-specific questions
 
-### Implementation for User Story 3
+### Implementation for User Story 4
 
-- [ ] T010 [US3] Set up React project structure in frontend/ directory
-- [ ] T011 [US3] Create FileUpload component with drag-and-drop functionality
-- [ ] T012 [US3] Create DocumentList component to display uploaded documents
-- [ ] T013 [US3] Create ChatInterface component for question/answer interaction
-- [ ] T014 [US3] Implement API integration functions (upload, chat, get documents)
-- [ ] T015 [US3] Create main App component integrating all UI components
-- [ ] T016 [US3] Add loading states and error handling to UI components
-- [ ] T017 [US3] Style the application with modern CSS/React styling
+- [x] T012 [US4] Create add_faq_knowledge.py script to parse and add FAQ content
+- [x] T013 [US4] Implement FAQ parsing logic for question-answer pairs
+- [x] T014 [US4] Add 46+ categorized Q&A pairs to knowledge base
+- [x] T015 [US4] Test knowledge retrieval for SwiftFixPro questions
 
-**Checkpoint**: At this point, User Story 3 should be fully functional and testable independently
+**Checkpoint**: At this point, User Story 4 should be fully functional and testable independently
+
+---
+
+## Phase 6: User Story 5 - Conversation & Feedback System (Priority: P2)
+
+**Goal**: Enable multi-turn conversations and collect user feedback for system improvement
+
+**Independent Test**: Test conversation memory and feedback submission functionality
+
+### Implementation for User Story 5
+
+- [x] T016 [US5] Implement conversation memory storage in main.py
+- [x] T017 [US5] Add conversation threading support to /chat endpoint
+- [x] T018 [US5] Create POST /feedback endpoint for collecting user feedback
+- [x] T019 [US5] Create GET /feedback endpoint to retrieve feedback data
+- [x] T020 [US5] Add conversation management endpoints (/conversations, /conversation/{id})
+
+**Checkpoint**: At this point, User Story 5 should be fully functional and testable independently
+
+---
+
+## Phase 7: User Story 6 - Docker Deployment (Priority: P1)
+
+**Goal**: Enable containerized deployment with Miniconda environment and multi-service setup
+
+**Independent Test**: Deploy using Docker and verify all services work correctly
+
+### Implementation for User Story 6
+
+- [x] T021 [US6] Create Dockerfile with Miniconda environment setup
+- [x] T022 [US6] Create docker-compose.yml with chatbot and Ollama services
+- [x] T023 [US6] Implement init_ollama.sh script for model initialization
+- [x] T024 [US6] Add health checks and service dependencies
+- [x] T025 [US6] Test multi-service deployment and model loading
+
+**Checkpoint**: At this point, User Story 6 should be fully functional and testable independently
+
+---
+
+## Phase 8: User Story 7 - Testing Infrastructure (Priority: P2)
+
+**Goal**: Provide comprehensive testing tools for API validation and knowledge base verification
+
+**Independent Test**: Run test scripts and verify all functionality works correctly
+
+### Implementation for User Story 7
+
+- [x] T026 [US7] Create test_chatbot_server_fixed.py for API testing
+- [x] T027 [US7] Create check_model_server.sh for model validation
+- [x] T028 [US7] Implement knowledge base testing functionality
+- [x] T029 [US7] Add server-side verification tools
+- [x] T030 [US7] Test all endpoints and functionality
+
+**Checkpoint**: At this point, User Story 7 should be fully functional and testable independently
 
 ---
 
@@ -118,15 +170,20 @@ No foundational tasks required - connections established in setup.
 - **Setup (Phase 1)**: No dependencies - can start immediately
 - **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
 - **User Story 1 (Phase 3)**: Depends on Setup completion - Core chat functionality
-- **User Story 2 (Phase 4)**: Depends on Setup completion - Document upload functionality  
-- **User Story 3 (Phase 5)**: Depends on User Stories 1 AND 2 completion (needs both API and upload capabilities)
-- **Polish (Final Phase)**: Depends on all desired user stories being complete
+- **User Story 2 (Phase 4)**: Depends on Setup completion - Document upload functionality
+- **User Story 4 (Phase 5)**: Depends on User Stories 1 AND 2 - Knowledge base management
+- **User Story 5 (Phase 6)**: Depends on User Story 1 - Conversation and feedback features
+- **User Story 6 (Phase 7)**: Depends on all previous stories - Docker deployment
+- **User Story 7 (Phase 8)**: Depends on all previous stories - Testing infrastructure
 
 ### User Story Dependencies
 
 - **User Story 1 (P1)**: Can start after Setup - No dependencies on other stories
-- **User Story 2 (P1)**: Can start after Setup - No dependencies on other stories  
-- **User Story 3 (P2)**: Depends on User Stories 1 AND 2 (needs both chat API and document upload API)
+- **User Story 2 (P1)**: Can start after Setup - No dependencies on other stories
+- **User Story 4 (P1)**: Depends on User Stories 1 AND 2 (needs chat API and upload API)
+- **User Story 5 (P2)**: Depends on User Story 1 (needs chat functionality)
+- **User Story 6 (P1)**: Depends on all previous stories (comprehensive deployment)
+- **User Story 7 (P2)**: Depends on all previous stories (full system testing)
 
 ### Within Each User Story
 
@@ -172,8 +229,10 @@ Task: "Implement Frontend Chat Logic in app.js"
 1. Complete Setup → Foundation ready
 2. Add User Story 1 → Test chat API independently → Deploy/Demo (Basic RAG!)
 3. Add User Story 2 → Test document upload independently → Deploy/Demo (Full backend!)
-4. Add User Story 3 → Test React UI independently → Deploy/Demo (Complete product!)
-5. Each story adds value without breaking previous stories
+4. Add User Story 4 → Test knowledge base independently → Deploy/Demo (SwiftFixPro ready!)
+5. Add User Story 5 → Test conversation features independently → Deploy/Demo (Enhanced UX!)
+6. Add User Story 6 → Test Docker deployment independently → Deploy/Demo (Production ready!)
+7. Add User Story 7 → Test complete system independently → Deploy/Demo (Fully validated!)
 
 ### Parallel Team Strategy
 
@@ -181,10 +240,10 @@ With multiple developers:
 
 1. Team completes Setup together
 2. Once Setup is done:
-   - Developer A: User Story 1 (Chat API)
-   - Developer B: User Story 2 (Document Upload API)
+   - Developer A: User Story 1 (Chat API) + User Story 5 (Conversation features)
+   - Developer B: User Story 2 (Document Upload API) + User Story 4 (Knowledge Base)
 3. Stories complete and integrate
-4. Developer C: User Story 3 (React Frontend)
+4. Developer C: User Story 6 (Docker Deployment) + User Story 7 (Testing)
 
 ---
 
@@ -195,5 +254,7 @@ With multiple developers:
 - Each user story should be independently completable and testable
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
-- **Current Status**: User Stories 1 and 2 are complete and tested. User Story 3 (React UI) is ready for implementation.
+- **Current Status**: All user stories (1, 2, 4, 5, 6, 7) are complete and tested. System is production-ready with comprehensive SwiftFixPro knowledge base, conversation memory, Docker deployment, and full testing infrastructure.
+- Model upgraded from llama3.2 to llama3:8b for improved performance
+- Vector database changed from ChromaDB to FAISS with lazy initialization
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence

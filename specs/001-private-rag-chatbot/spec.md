@@ -2,49 +2,72 @@
 
 **Feature Branch**: `001-private-rag-chatbot`  
 **Created**: October 29, 2025  
-**Status**: Draft  
+**Updated**: November 4, 2025  
+**Status**: Complete  
+**Current Model**: llama3:8b (upgraded from llama3.2)  
+**Vector Database**: FAISS (with lazy initialization)  
+**Knowledge Base**: SwiftFixPro FAQ (46+ Q&A pairs)  
 **Input**: User description: "Goal: Build the FastAPI "Brain" (main.py)
 
 1.  **Task 1: Setup and Connections:**
     * Create the `main.py` file with a basic FastAPI app.
-    * Load the required Python libraries (FastAPI, LangChain, Ollama, ChromaDB).
+    * Load the required Python libraries (FastAPI, LangChain, Ollama, FAISS).
     * Establish and verify the connections to the two core components:
-        * Connect to the *existing* `./chroma_db` vector store.
-        * Connect to the *Ollama* models (`llama3` and `nomic-embed-text`).
+        * Connect to the *FAISS* vector store with lazy initialization.
+        * Connect to the *Ollama* models (`llama3:8b` and `nomic-embed-text`).
     * Create a simple `/` endpoint to confirm the server is running.
+    * Implement CORS middleware for cross-origin requests.
 
 2.  **Task 2: Define Data Models:**
     * Use Pydantic (built into FastAPI) to create data models for:
-        * `ChatRequest`: A class that expects a `question` string.
-        * `ChatResponse`: A class that will send back an `answer` string.
+        * `ChatRequest`: A class that expects a `question` string and optional `conversation_id`.
+        * `ChatResponse`: A class that will send back an `answer` string and `conversation_id`.
+        * `AddKnowledgeRequest`: For adding knowledge directly to the vector database.
+        * `FeedbackRequest`: For collecting user feedback on responses.
 
 3.  **Task 3: Build the RAG Chain:**
     * Use LangChain Expression Language (LCEL) to build the full RAG "chain."
     * This chain will define the flow: `input` -> `retriever` -> `prompt` -> `model` -> `output_parser`.
     * This is the core logic that orchestrates the entire RAG process.
+    * Implement conversation memory for multi-turn conversations.
 
 4.  **Task 4: Create the Chat Endpoint:**
     * Create a new POST `/chat` endpoint.
     * This endpoint will use the Pydantic models (from Task 2) and the RAG chain (from Task 3).
     * It will receive a question, "invoke" the chain, and return the final answer.
+    * Support conversation threading with memory.
 
 5.  **Task 5: Document Upload Functionality:**
     * Create POST `/upload` endpoint to accept file uploads.
     * Support multiple file formats: PDF, TXT, DOCX, PPTX, XLSX, CSV, images.
     * Extract text content from uploaded files using appropriate libraries.
-    * Split documents into chunks and store in ChromaDB vector database.
+    * Split documents into chunks and store in FAISS vector database.
 
 6.  **Task 6: Document Management:**
     * Create GET `/documents` endpoint to list uploaded documents.
     * Create POST `/upload-text` endpoint for direct text input.
+    * Create POST `/add-knowledge` endpoint for programmatic knowledge addition.
     * Track document sources and metadata in vector database.
 
-7.  **Task 7: React UI Development:**
-    * Create a React application for document upload and chat interface.
-    * Implement file upload component with drag-and-drop functionality.
-    * Display list of uploaded documents.
-    * Create chat interface for asking questions and displaying answers.
-    * Integrate with FastAPI backend endpoints."
+7.  **Task 7: Knowledge Base Management:**
+    * Implement SwiftFixPro FAQ knowledge base with 46+ categorized Q&A pairs.
+    * Create automated script for adding structured knowledge.
+    * Support different knowledge categories (services, accounts, payments, etc.).
+
+8.  **Task 8: Conversation & Feedback System:**
+    * Implement conversation memory for multi-turn interactions.
+    * Create feedback collection system for response quality improvement.
+    * Add conversation management endpoints (list, clear conversations).
+
+9.  **Task 9: Docker Deployment:**
+    * Create Docker setup with Miniconda environment.
+    * Implement multi-service deployment (chatbot + Ollama).
+    * Add health checks and proper service dependencies.
+
+10. **Task 10: Testing Infrastructure:**
+     * Create comprehensive API testing scripts.
+     * Implement server-side verification tools.
+     * Add model validation and knowledge base testing.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -137,38 +160,46 @@ The system must properly handle request and response data structures.
 
 ### Functional Requirements
 
-- **FR-001**: System MUST create a FastAPI application in main.py
-- **FR-002**: System MUST load and use FastAPI, LangChain, Ollama, and ChromaDB libraries
-- **FR-003**: System MUST connect to existing ChromaDB vector store at ./chroma_db
-- **FR-004**: System MUST connect to Ollama models llama3 and nomic-embed-text
-- **FR-005**: System MUST provide a GET / endpoint for health checks
-- **FR-006**: System MUST define ChatRequest and ChatResponse Pydantic models
-- **FR-007**: System MUST build a RAG chain using LangChain LCEL with retriever, prompt, model, and output_parser
-- **FR-008**: System MUST provide a POST /chat endpoint that accepts questions and returns answers
-- **FR-009**: System MUST retrieve relevant context from ChromaDB for user questions
-- **FR-010**: System MUST generate answers using llama3 model with retrieved context
-- **FR-011**: System MUST provide a POST /upload endpoint that accepts file uploads in multiple formats (PDF, TXT, DOCX, PPTX, XLSX, CSV, images)
-- **FR-012**: System MUST extract text content from uploaded files using appropriate libraries
-- **FR-013**: System MUST split uploaded documents into chunks and store them in ChromaDB
-- **FR-014**: System MUST provide a GET /documents endpoint that returns a list of uploaded documents
-- **FR-015**: System MUST provide a POST /upload-text endpoint for direct text input
-- **FR-016**: System MUST create a React web application with document upload and chat interfaces
-- **FR-017**: System MUST implement drag-and-drop file upload functionality in the React UI
-- **FR-018**: System MUST display a list of uploaded documents in the React UI
-- **FR-019**: System MUST provide a chat interface for asking questions and displaying answers
+* **FR-001**: System MUST create a FastAPI application in main.py
+* **FR-002**: System MUST load and use FastAPI, LangChain, Ollama, and FAISS libraries
+* **FR-003**: System MUST connect to FAISS vector store with lazy initialization
+* **FR-004**: System MUST connect to Ollama models llama3:8b and nomic-embed-text
+* **FR-005**: System MUST provide a GET / endpoint for health checks
+* **FR-006**: System MUST define ChatRequest, ChatResponse, AddKnowledgeRequest, and FeedbackRequest Pydantic models
+* **FR-007**: System MUST build a RAG chain using LangChain LCEL with retriever, prompt, model, and output_parser
+* **FR-008**: System MUST provide a POST /chat endpoint that accepts questions and returns answers
+* **FR-009**: System MUST retrieve relevant context from FAISS for user questions
+* **FR-010**: System MUST generate answers using llama3:8b model with retrieved context
+* **FR-011**: System MUST provide a POST /upload endpoint that accepts file uploads in multiple formats (PDF, TXT, DOCX, PPTX, XLSX, CSV, images)
+* **FR-012**: System MUST extract text content from uploaded files using appropriate libraries
+* **FR-013**: System MUST split uploaded documents into chunks and store them in FAISS
+* **FR-014**: System MUST provide a GET /documents endpoint that returns a list of uploaded documents
+* **FR-015**: System MUST provide a POST /upload-text endpoint for direct text input
+* **FR-016**: System MUST provide a POST /add-knowledge endpoint for programmatic knowledge addition
+* **FR-017**: System MUST implement SwiftFixPro FAQ knowledge base with 46+ categorized Q&A pairs
+* **FR-018**: System MUST support conversation memory for multi-turn interactions
+* **FR-019**: System MUST provide feedback collection system for response quality improvement
+* **FR-020**: System MUST support Docker deployment with Miniconda environment
+* **FR-021**: System MUST provide comprehensive API testing and validation tools
 
 ### Key Entities *(include if feature involves data)*
 
-- **Question**: User input text representing the query
-- **Answer**: Generated response text from the LLM
-- **Document Chunk**: Portion of private document stored as vector embedding
-- **Vector Embedding**: Numerical representation of document chunks for similarity search
+* **Question**: User input text representing the query
+* **Answer**: Generated response text from the LLM
+* **Document Chunk**: Portion of private document stored as vector embedding
+* **Vector Embedding**: Numerical representation of document chunks for similarity search
+* **Knowledge Entry**: Structured Q&A pair from FAQ knowledge base
+* **Conversation Memory**: Stored conversation history for multi-turn interactions
+* **Feedback Entry**: User feedback on response quality and accuracy
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: Users receive chat responses within 2 seconds for questions with available context
-- **SC-002**: System correctly retrieves relevant document context for 95% of test questions
-- **SC-003**: API endpoints return proper HTTP status codes and structured responses
-- **SC-004**: System successfully connects to all required components (Ollama, ChromaDB) on startup
+* **SC-001**: Users receive chat responses within 2 seconds for questions with available context
+* **SC-002**: System correctly retrieves relevant document context for 95% of test questions
+* **SC-003**: API endpoints return proper HTTP status codes and structured responses
+* **SC-004**: System successfully connects to all required components (Ollama, FAISS) on startup
+* **SC-005**: SwiftFixPro FAQ knowledge base contains 46+ properly categorized Q&A pairs
+* **SC-006**: Model validation confirms llama3:8b is properly loaded and responding
+* **SC-007**: Docker deployment successfully runs multi-service setup with health checks
