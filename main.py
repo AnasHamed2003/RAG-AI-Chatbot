@@ -128,9 +128,9 @@ def get_db():
                 from langchain_core.documents import Document
                 # Create multiple initial documents to ensure proper index
                 init_docs = [
-                    Document(page_content="SwiftFixPro is a property maintenance service.", metadata={"source": "init"}),
-                    Document(page_content="We provide emergency repairs and maintenance.", metadata={"source": "init"}),
-                    Document(page_content="Licensed and insured technicians available 24/7.", metadata={"source": "init"})
+                    Document(page_content="I am SwiftBot, an AI assistant for SwiftFixPro. I provide answers based on uploaded knowledge base documents.", metadata={"source": "init"}),
+                    Document(page_content="My services include: answering questions from knowledge base, uploading and processing documents (PDF, TXT, DOCX, PPTX, XLSX, CSV, images), managing conversations, and providing feedback.", metadata={"source": "init"}),
+                    Document(page_content="I use retrieval-augmented generation to find relevant information from uploaded documents and provide accurate answers.", metadata={"source": "init"})
                 ]
                 db = FAISS.from_documents(init_docs, current_embeddings)
     return db
