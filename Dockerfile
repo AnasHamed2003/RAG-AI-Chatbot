@@ -36,15 +36,10 @@ ENV PATH=/opt/conda/bin:$PATH
 RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && \
     conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 
-# Create conda environment with PyTorch
-RUN conda create -n chatbot_env python=3.11 -y && \
-    conda run -n chatbot_env conda install -c conda-forge -y \
-    pytorch \
-    torchvision \
-    torchaudio \
-    cpuonly
+# Create conda environment
+RUN conda create -n chatbot_env python=3.11 -y
 
-# Copy requirements and install remaining pip dependencies
+# Copy requirements and install all dependencies via pip
 COPY requirements.txt .
 RUN conda run -n chatbot_env pip install --no-cache-dir -r requirements.txt
 
