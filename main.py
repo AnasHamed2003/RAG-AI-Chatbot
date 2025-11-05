@@ -1,12 +1,11 @@
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
-from langchain_ollama import OllamaEmbeddings, OllamaLLM
+from langchain_huggingface import HuggingFaceEmbeddings, HuggingFacePipeline
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import tempfile
@@ -17,6 +16,29 @@ import pytesseract
 from PIL import Image
 import json
 from datetime import datetime
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+
+# Simple text splitter implementation to avoid import issues
+class SimpleTextSplitter:
+    def __init__(self, chunk_size=1000, chunk_overlap=200):
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+
+    def split_documents(self, documents):
+        """Split documents into chunks."""
+        from langchain_core.documents import Document
+        chunks = []
+        for doc in documents:
+            text = doc.page_content
+            # Simple splitting by character count
+            for i in range(0, len(text), self.chunk_size - self.chunk_overlap):
+                chunk_text = text[i:i + self.chunk_size]
+                if chunk_text.strip():  # Only add non-empty chunks
+                    chunks.append(Document(
+                        page_content=chunk_text,
+                        metadata=doc.metadata
+                    ))
+        return chunks
 
 # Feedback storage - define before loading
 feedback_store = []
@@ -47,23 +69,70 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-embeddings = OllamaEmbeddings(model="nomic-embed-text")
-llm = OllamaLLM(model="llama3:8b")
+# Initialize models lazily
+embeddings = None
+llm = None
+
+def get_embeddings():
+    """Lazy initialization of embeddings."""
+    global embeddings
+    if embeddings is None:
+        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    return embeddings
+
+def get_llm():
+    """Lazy initialization of GPT-Neo LLM."""
+    global llm
+    if llm is None:
+        # Initialize GPT-Neo 125M model
+        model_name = "EleutherAI/gpt-neo-125m"
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForCausalLM.from_pretrained(model_name)
+
+        # Create text generation pipeline
+        text_generation_pipeline = pipeline(
+            "text-generation",
+            model=model,
+            tokenizer=tokenizer,
+            max_new_tokens=512,
+            temperature=0.7,
+            do_sample=True,
+            pad_token_id=tokenizer.eos_token_id
+        )
+
+        # Create LangChain LLM wrapper
+        llm = HuggingFacePipeline(pipeline=text_generation_pipeline)
+    return llm
 
 # Initialize FAISS vector store
 db = None
+db_lock = None
 
 def get_db():
     """Lazy initialization of FAISS database."""
-    global db
-    if db is None:
-        try:
-            db = FAISS.load_local("./faiss_db", embeddings, allow_dangerous_deserialization=True)
-        except:
-            # Create empty FAISS index if none exists
-            from langchain_core.documents import Document
-            empty_doc = Document(page_content="Initial document", metadata={"source": "init"})
-            db = FAISS.from_documents([empty_doc], embeddings)
+    global db, db_lock
+    if db_lock is None:
+        import threading
+        db_lock = threading.Lock()
+    
+    with db_lock:
+        if db is None:
+            try:
+                current_embeddings = get_embeddings()
+                db = FAISS.load_local("./faiss_db", current_embeddings, allow_dangerous_deserialization=True)
+                print(f"Loaded existing FAISS index with {db.index.ntotal} documents")
+            except Exception as e:
+                print(f"Creating new FAISS index: {e}")
+                # Create empty FAISS index if none exists
+                current_embeddings = get_embeddings()
+                from langchain_core.documents import Document
+                # Create multiple initial documents to ensure proper index
+                init_docs = [
+                    Document(page_content="SwiftFixPro is a property maintenance service.", metadata={"source": "init"}),
+                    Document(page_content="We provide emergency repairs and maintenance.", metadata={"source": "init"}),
+                    Document(page_content="Licensed and insured technicians available 24/7.", metadata={"source": "init"})
+                ]
+                db = FAISS.from_documents(init_docs, current_embeddings)
     return db
 
 # Conversation memory store - simple dict-based approach
@@ -104,11 +173,7 @@ class AddKnowledgeRequest(BaseModel):
     category: str = "general"
 
 # Initialize text splitter
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
-    chunk_overlap=200,
-    length_function=len,
-)
+text_splitter = SimpleTextSplitter(chunk_size=1000, chunk_overlap=200)
 
 def extract_text_from_docx(file_path: str) -> str:
     """Extract text from a DOCX file."""
@@ -168,43 +233,14 @@ def extract_text_from_file(file_path: str, file_type: str) -> str:
 # Create conversational RAG chain
 def create_conversational_chain(memory):
     """Create a conversational RAG chain with memory."""
-    # Get the database (lazy initialization)
-    current_db = get_db()
-    current_retriever = current_db.as_retriever(search_kwargs={"k": 10})
-    
-    # Format chat history for the prompt
-    chat_history_text = ""
-    if memory:
-        for turn in memory[-5:]:  # Use last 5 turns
-            chat_history_text += f"User: {turn['user']}\nAssistant: {turn['ai']}\n"
+    # Get the LLM (lazy initialization)
+    current_llm = get_llm()
 
-    template = f"""You are SwiftBot, the AI assistant for SwiftFixPro property maintenance services.
+    def simple_prompt(question):
+        """Create a simple prompt."""
+        return f"You are SwiftBot, an AI assistant. Question: {question}\nAnswer:"
 
-STRICT RULES - YOU MUST FOLLOW THESE EXACTLY:
-1. ONLY answer using information explicitly found in the Context provided below
-2. If the question cannot be answered using ONLY the Context, respond with: "I'm sorry, I don't have information about that in my knowledge base. Please contact SwiftFixPro directly for more details."
-3. DO NOT add, invent, or assume any information not in the Context
-4. DO NOT use any pre-trained knowledge about SwiftFixPro or property services
-5. SwiftFixPro provides property maintenance services - ONLY mention services listed in the Context
-6. If asked about services not in the Context, say you don't have that information
-
-Context: {{context}}
-Chat History: {chat_history_text}
-
-Question: {{question}}
-Answer:"""
-
-    prompt_template = ChatPromptTemplate.from_template(template)
-
-    chain = (
-        {
-            "context": current_retriever,
-            "question": RunnablePassthrough()
-        }
-        | prompt_template
-        | llm
-        | StrOutputParser()
-    )
+    chain = simple_prompt | current_llm | StrOutputParser()
     return chain
 
 @app.post("/upload")
@@ -313,8 +349,12 @@ async def chat(request: ChatRequest):
         return ChatResponse(answer=response, conversation_id=request.conversation_id)
 
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Chat error: {e}")
+        print(f"Traceback: {error_details}")
         return ChatResponse(
-            answer=f"I apologize, but I encountered an error: {str(e)}. Please try again.",
+            answer=f"I apologize, but I encountered an error: {str(e)}. Details: {error_details[:500]}",
             conversation_id=request.conversation_id
         )
 

@@ -4,7 +4,7 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies for pytesseract and other packages
+# Install system dependencies for pytesseract and PyTorch
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
@@ -13,7 +13,11 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
+    libgthread-2.0-0 \
+    libglib2.0-0 \
     wget \
+    git \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Miniconda
@@ -32,18 +36,13 @@ ENV PATH=/opt/conda/bin:$PATH
 RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && \
     conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 
-# Create conda environment
-RUN conda create -n chatbot_env python=3.11 -y
-
-# Install conda packages
-RUN conda run -n chatbot_env conda install -c conda-forge -y \
-    fastapi \
-    uvicorn \
-    langchain \
-    langchain-ollama \
-    langchain-community \
-    chromadb \
-    pydantic
+# Create conda environment with PyTorch
+RUN conda create -n chatbot_env python=3.11 -y && \
+    conda run -n chatbot_env conda install -c conda-forge -y \
+    pytorch \
+    torchvision \
+    torchaudio \
+    cpuonly
 
 # Copy requirements and install remaining pip dependencies
 COPY requirements.txt .
@@ -52,8 +51,12 @@ RUN conda run -n chatbot_env pip install --no-cache-dir -r requirements.txt
 # Copy the application code
 COPY . .
 
-# Create directory for FAISS database
-RUN mkdir -p faiss_db
+# Create directories for FAISS database and model cache
+RUN mkdir -p faiss_db models
+
+# Set Hugging Face cache directory
+ENV HF_HOME=/app/models
+ENV TRANSFORMERS_CACHE=/app/models
 
 # Expose port
 EXPOSE 8000

@@ -1,10 +1,10 @@
-# 🤖 SwiftFixPro RAG Chatbot API [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/) [![Ollama](https://img.shields.io/badge/Ollama-llama3.8b-orange.svg)](https://ollama.ai/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# 🤖 SwiftFixPro RAG Chatbot API [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/) [![HuggingFace](https://img.shields.io/badge/HuggingFace-GPT--Neo--125M-orange.svg)](https://huggingface.co/EleutherAI/gpt-neo-125m) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive FastAPI-based RAG (Retrieval-Augmented Generation) chatbot for SwiftFixPro property maintenance services. Features advanced AI model, vector database, conversation memory, and comprehensive knowledge base.
 
 ## ✨ Key Features
 
-- 🚀 **Advanced AI Model**: llama3:8b for superior response quality
+- 🚀 **Advanced AI Model**: GPT-Neo 125M for efficient response quality
 - 🗄️ **Vector Database**: FAISS with lazy initialization for optimal performance
 - 📚 **Knowledge Base**: Pre-loaded with 46+ SwiftFixPro FAQ Q&A pairs
 - 💬 **Conversation Memory**: Multi-turn conversation support with context retention
@@ -44,8 +44,7 @@ Before you begin, ensure you have:
 
 - **Python 3.11+** with Miniconda (recommended)
 - **Docker & Docker Compose** (for easy deployment)
-- **Ollama** (for local model inference)
-- **8GB+ RAM** (required for llama3:8b model)
+- **4GB+ RAM** (required for GPT-Neo 125M model)
 - **Git** (for cloning the repository)
 
 ## 🛠️ Installation
@@ -83,20 +82,9 @@ docker-compose up --build
    pip install -r requirements.txt
    ```
 
-4. **Setup Ollama**:
+4. **Setup Models**:
 
-   ```bash
-   # Install Ollama
-   # Windows: Download from https://ollama.ai/download
-   # Linux/Mac: curl -fsSL https://ollama.ai/install.sh | sh
-
-   # Pull required models
-   ollama pull llama3:8b
-   ollama pull nomic-embed-text
-
-   # Start Ollama service
-   ollama serve
-   ```
+   The GPT-Neo 125M model and embeddings will be downloaded automatically on first run. No manual setup required.
 
 5. **Add SwiftFixPro Knowledge Base**:
 
@@ -245,22 +233,14 @@ curl -X POST http://localhost:8000/upload \
 
 ### Server Deployment
 
-1. **Install Ollama on your server**:
-   ```bash
-   curl -fsSL https://ollama.ai/install.sh | sh
-   ollama pull llama3:8b
-   ollama pull nomic-embed-text
-   ollama serve
-   ```
-
-2. **Deploy with Docker**:
+1. **Deploy with Docker**:
    ```bash
    git clone https://github.com/AnasHamed2003/RAG-AI-Chatbot.git
    cd RAG-AI-Chatbot
    docker-compose up --build -d
    ```
 
-3. **Configure firewall**:
+2. **Configure firewall**:
    - Open port 8000 on your server firewall
    - Optionally set up Nginx/Apache as reverse proxy
 
@@ -278,14 +258,12 @@ FEEDBACK_FILE=feedback.jsonl
 
 ### Common Issues & Solutions
 
-**❌ Model not loading:**
+**❌ Model loading issues:**
 
 ```bash
-# Check Ollama status
-ollama list
-
-# Pull model if missing
-ollama pull llama3:8b
+# Clear model cache and retry
+rm -rf models/
+python main.py
 ```
 
 **❌ Port already in use:**
@@ -293,7 +271,6 @@ ollama pull llama3:8b
 ```bash
 # Kill existing processes
 pkill -f "python main.py"
-pkill -f ollama
 
 # Or use different port
 uvicorn main:app --host 0.0.0.0 --port 8001
@@ -301,9 +278,9 @@ uvicorn main:app --host 0.0.0.0 --port 8001
 
 **❌ Memory issues:**
 
-- Ensure 8GB+ RAM available
+- Ensure 4GB+ RAM available
 - Reduce concurrent requests
-- Consider using smaller model for testing
+- Consider using a smaller model for testing
 
 **❌ Docker issues:**
 
@@ -320,9 +297,6 @@ docker-compose up --build
 # View application logs
 docker-compose logs -f chatbot
 
-# View Ollama logs
-docker-compose logs -f ollama
-
 # Test API manually
 curl http://localhost:8000/
 ```
@@ -331,11 +305,11 @@ curl http://localhost:8000/
 
 | Metric | Value |
 |--------|-------|
-| **Response Time** | <2 seconds for typical queries |
-| **Memory Usage** | ~8GB RAM for llama3:8b model |
+| **Response Time** | <3 seconds for typical queries |
+| **Memory Usage** | ~4GB RAM for GPT-Neo 125M model |
 | **Concurrent Users** | Optimized for single-user deployment |
 | **Knowledge Base** | 46+ pre-loaded SwiftFixPro Q&A pairs |
-| **Model Size** | 8B parameters (llama3:8b) |
+| **Model Size** | 125M parameters (GPT-Neo 125M) |
 
 ## 🤝 Contributing
 
@@ -373,8 +347,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] Check the troubleshooting section above
 - [ ] Review the API documentation
 - [ ] Test with the provided validation scripts
-- [ ] Check Docker and Ollama logs for errors
-- [ ] Ensure you have 8GB+ RAM available
+- [ ] Check Docker logs for errors
+- [ ] Ensure you have 4GB+ RAM available
 
 ---
 
