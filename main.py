@@ -243,6 +243,37 @@ def create_conversational_chain(memory):
     chain = simple_prompt | current_llm | StrOutputParser()
     return chain
 
+
+def answer_from_kb(question: str, k: int = 5) -> str:
+    """Return a KB-only answer by retrieving top-k chunks from the FAISS index.
+
+    This function strictly returns text from retrieved documents and includes
+    simple source metadata. It does NOT call the LLM, preventing hallucinations.
+    """
+    current_db = get_db()
+    try:
+        # Use similarity_search to get nearest document chunks
+        docs = current_db.similarity_search(question, k=k)
+    except Exception as e:
+        # If retrieval fails, return an informative message
+        return f"No knowledge-base results available: {str(e)}"
+
+    if not docs:
+        return "No relevant information found in the knowledge base."
+
+    parts = []
+    for i, doc in enumerate(docs, start=1):
+        src = doc.metadata.get("source") if isinstance(doc.metadata, dict) else None
+        src_text = f" (source: {src})" if src else ""
+        # Keep results concise: trim very long chunks
+        content = doc.page_content.strip()
+        if len(content) > 2000:
+            content = content[:2000] + "..."
+        parts.append(f"[{i}]{src_text}\n{content}")
+
+    # Join with separators so clients can parse the pieces easily
+    return "\n\n---\n\n".join(parts)
+
 @app.post("/upload")
 async def upload_document(file: UploadFile = File(...)):
     """Upload a document and add it to the vector database. Supports PDF, TXT, DOCX, PPTX, XLSX, CSV, and images."""
@@ -337,13 +368,11 @@ async def chat(request: ChatRequest):
         # Get conversation memory
         memory = get_or_create_memory(request.conversation_id)
 
-        # Create conversational chain
-        chain = create_conversational_chain(memory)
+        # Use KB-only retrieval to answer strictly from the knowledge base
+        # This avoids LLM hallucinations by returning retrieved chunks and sources.
+        response = answer_from_kb(request.question, k=5)
 
-        # Get response
-        response = await chain.ainvoke(request.question)
-
-        # Add to memory
+        # Add to memory (store the retrieved answer text)
         add_to_memory(request.conversation_id, request.question, response)
 
         return ChatResponse(answer=response, conversation_id=request.conversation_id)
